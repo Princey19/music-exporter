@@ -3,7 +3,7 @@ body {
   margin: 20px;
 }
 .container {
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
   border: 1px solid #ccc;
@@ -52,4 +52,28 @@ button:hover {
 }
 .hidden {
   display: none;
+}
+
+/* Media query for screens smaller than 768px (typical mobile devices) */
+@media (max-width: 100%) {
+  .container {
+    padding: 10px;
+    margin: 0 10px; /* Reduce margins on smaller screens */
+  }
+  input[type="text"] {
+    width: 100%; /* Full width on smaller screens */
+    margin-right: 0;
+    margin-bottom: 10px; /* Add spacing between input and button */
+  }
+  button {
+    width: 100%; /* Full width button */
+  }
+  #resultsTable {
+    overflow-x: auto; /* Enable horizontal scrolling for the table */
+    display: block; /* Required for overflow-x to work */
+  }
+  #resultsTable th,
+  #resultsTable td {
+    white-space: nowrap; /* Prevent text from wrapping in table cells */
+  }
 }
