@@ -1,29 +1,33 @@
-// WARNING: Placing your API key directly in client-side code is INSECURE for production applications.
-// For production, you should use a backend server to make API calls to YouTube.
 const YOUTUBE_API_KEY = "AIzaSyDtOP_ntaHzEDIr2mQ6vKSzP7-XJSndj24"; // Replace with your actual API key
 const MAX_RESULTS_PER_PAGE = 50; // Max allowed by YouTube API
 const MAX_TOTAL_RESULTS = 100000; // Your requested limit (will be hard to reach due to quota)
 const MIN_VIEWS = 200000; // Minimum views required
 
-document
-  .getElementById("searchButton")
-  .addEventListener("click", searchAndExport);
+// Get references to elements
+const searchInput = document.getElementById("searchInput");
+const searchButton = document.getElementById("searchButton");
+const statusDiv = document.getElementById("status");
+const loadingDiv = document.getElementById("loading");
+const resultsTable = document.getElementById("resultsTable");
+const tableBody = resultsTable.querySelector("tbody");
+
+// Initially hide the table
+resultsTable.classList.add("hidden");
+
+searchButton.addEventListener("click", searchAndExport);
 
 async function searchAndExport() {
-  const searchInput = document.getElementById("searchInput").value.trim();
-  const statusDiv = document.getElementById("status");
-  const loadingDiv = document.getElementById("loading");
-  const resultsTable = document.getElementById("resultsTable");
-  const tableBody = resultsTable.querySelector("tbody");
+  const searchTerm = searchInput.value.trim();
 
-  if (!searchInput) {
+  if (!searchTerm) {
     statusDiv.textContent = "Please enter an artist name or song title.";
     statusDiv.classList.remove("hidden");
     return;
   }
 
+  // Reset UI for new search
   statusDiv.classList.add("hidden");
-  resultsTable.classList.add("hidden");
+  resultsTable.classList.add("hidden"); // Ensure table is hidden at the start of a new search
   tableBody.innerHTML = ""; // Clear previous results
   loadingDiv.classList.remove("hidden");
 
@@ -35,7 +39,7 @@ async function searchAndExport() {
     while (fetchedResultsCount < MAX_TOTAL_RESULTS) {
       const url = new URL("https://www.googleapis.com/youtube/v3/search");
       url.searchParams.append("key", YOUTUBE_API_KEY);
-      url.searchParams.append("q", searchInput);
+      url.searchParams.append("q", searchTerm);
       url.searchParams.append("part", "snippet"); // Get basic video info
       url.searchParams.append("type", "video"); // Only search for videos
       url.searchParams.append("maxResults", MAX_RESULTS_PER_PAGE);
@@ -119,7 +123,7 @@ async function searchAndExport() {
     loadingDiv.classList.add("hidden");
     if (allVideoData.length > 0) {
       displayResults(allVideoData);
-      exportToExcel(allVideoData, searchInput);
+      exportToExcel(allVideoData, searchTerm);
       statusDiv.textContent = `Found ${allVideoData.length} videos matching your criteria. Exported to Excel.`;
     } else {
       statusDiv.textContent =
@@ -127,9 +131,9 @@ async function searchAndExport() {
     }
     statusDiv.classList.remove("hidden");
   } catch (error) {
-    console.error("There seems to be an error fetching YouTube data:", error);
+    console.error("Error fetching YouTube data:", error);
     loadingDiv.classList.add("hidden");
-    statusDiv.textContent = `There seems to be an error 🤔 ${error.message}. Please try again. Also, please consider YouTube API quota limits`;
+    statusDiv.textContent = `Error: ${error.message}. Please check your API key and try again. Also, consider YouTube API quota limits.`;
     statusDiv.classList.remove("hidden");
   }
 }
@@ -151,7 +155,7 @@ function displayResults(data) {
         `;
     tableBody.appendChild(tr);
   });
-  resultsTable.classList.remove("hidden");
+  resultsTable.classList.remove("hidden"); // Make the table visible
 }
 
 function exportToExcel(data, searchInput) {
@@ -167,9 +171,9 @@ function exportToExcel(data, searchInput) {
 
   // Add header row
   const headers = [
-    "Artist",
+    "Artist (Inferred)",
     "Song Title",
-    "Genre",
+    "Genre (Inferred)",
     "Total Views",
     "Video Link",
     "Channel Link",
