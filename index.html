@@ -3,38 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YouTube Music Data Exporter</title>
+    <title>Youtube Music Search</title>
     <link rel="stylesheet" href="./style.css" />
-    <!-- <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input[type="text"] { width: calc(100% - 110px); padding: 10px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        #status { margin-top: 20px; font-weight: bold; }
-        #resultsTable { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        #resultsTable th, #resultsTable td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        #resultsTable th { background-color: #f2f2f2; }
-        .loading { text-align: center; margin-top: 20px; }
-        .hidden { display: none; }
-    </style> -->
   </head>
   <body>
     <div class="container">
-      <h2>Who do you want to search?</h2>
+      <h1>YouTube Music Data Exporter</h1>
+      <p>Enter artist name and/or song title to search for YouTube videos.</p>
 
-      <div>
+      <div class="input-group">
+        <label for="artistInput">Artist Name:</label>
+        <input type="text" id="artistInput" placeholder="e.g., Adele" />
+      </div>
+      <div class="input-group">
+        <label for="songTitleInput">Song Title:</label>
+        <input type="text" id="songTitleInput" placeholder="e.g., Hello" />
+      </div>
+      <p>Choose the minimum amount of views</p>
+      <div class="input-group">
+        <label for="minViewsInput">Min Views:</label>
         <input
-          type="text"
-          id="searchInput"
-          placeholder="Enter artist name or song title (e.g., 'Adele Hello')"
+          type="number"
+          id="minViewsInput"
+          value="200000"
+          min="1"
+          step="1000"
+          placeholder="e.g., 1000"
         />
+      </div>
+
+      <div class="button-group">
         <button id="searchButton">Search</button>
+        <button id="downloadExcelButton" class="hidden">Download Excel</button>
       </div>
 
       <div id="status" class="hidden"></div>
       <div id="loading" class="loading hidden">
-        I'm gathering your data...Please wait.
+        Searching and gathering data... This may take a while.
       </div>
 
       <table id="resultsTable" class="hidden">
