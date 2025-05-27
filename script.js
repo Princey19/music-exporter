@@ -1,12 +1,13 @@
-const YOUTUBE_API_KEY = "AIzaSyDj2STT3vCINPIrNHfUz8pIDy0Rzbf6KH0"; // Replace with your actual API key
-const MAX_RESULTS_PER_PAGE = 50; // Max allowed by YouTube API
-const MAX_TOTAL_RESULTS = 10000; // Adjusted for a more realistic client-side quota limit (10,000 units/day)
-// 100,000 rows is extremely difficult to achieve client-side due to API quota.
+const YOUTUBE_API_KEY = "AIzaSyDdOKdoU-kw1z00kUkkqOtOcnUGK3l7nls";
+const MAX_RESULTS_PER_PAGE = 50;
+const MAX_TOTAL_RESULTS = 10000;
+
+const DEFAULT_MIN_VIEWS = 200000;
 
 // Get references to elements
 const artistInput = document.getElementById("artistInput");
 const songTitleInput = document.getElementById("songTitleInput");
-const minViewsInput = document.getElementById("minViewsInput"); // NEW: Minimum views input
+const minViewsInput = document.getElementById("minViewsInput");
 const searchButton = document.getElementById("searchButton");
 const downloadExcelButton = document.getElementById("downloadExcelButton");
 const statusDiv = document.getElementById("status");
@@ -14,10 +15,9 @@ const loadingDiv = document.getElementById("loading");
 const resultsTable = document.getElementById("resultsTable");
 const tableBody = resultsTable.querySelector("tbody");
 
-// Global variable to store fetched data for export
 let currentVideoData = [];
-let currentArtistSearch = ""; // To store the artist name used for the search
-let currentSongTitleSearch = ""; // To store the song title used for the search
+let currentArtistSearch = "";
+let currentSongTitleSearch = "";
 
 // Initially hide the table and download button
 resultsTable.classList.add("hidden");
@@ -41,10 +41,12 @@ downloadExcelButton.addEventListener("click", () => {
 async function searchAndFetchData() {
   currentArtistSearch = artistInput.value.trim();
   currentSongTitleSearch = songTitleInput.value.trim();
-  const desiredMinViews = parseInt(minViewsInput.value, 10); // NEW: Get min views from input
 
-  // Input validation for min views
-  if (isNaN(desiredMinViews) || desiredMinViews < 0) {
+  let desiredMinViews = parseInt(minViewsInput.value, 10);
+  if (isNaN(desiredMinViews) || minViewsInput.value.trim() === "") {
+    desiredMinViews = DEFAULT_MIN_VIEWS;
+    minViewsInput.value = DEFAULT_MIN_VIEWS;
+  } else if (desiredMinViews < 0) {
     statusDiv.textContent =
       "Please enter a valid number (0 or greater) for Minimum Views.";
     statusDiv.classList.remove("hidden");
@@ -56,8 +58,9 @@ async function searchAndFetchData() {
   if (currentArtistSearch) {
     combinedQuery += currentArtistSearch;
   }
+
   if (currentSongTitleSearch) {
-    combinedQuery += (combinedQuery ? " " : "") + currentSongTitleSearch; // Add space if artist is present
+    combinedQuery += (combinedQuery ? " " : "") + currentSongTitleSearch;
   }
 
   if (!combinedQuery) {
@@ -70,11 +73,11 @@ async function searchAndFetchData() {
   // Reset UI for new search
   statusDiv.classList.add("hidden");
   resultsTable.classList.add("hidden");
-  tableBody.innerHTML = ""; // Clear previous results
+  tableBody.innerHTML = "";
   downloadExcelButton.classList.add("hidden");
   loadingDiv.classList.remove("hidden");
 
-  currentVideoData = []; // Clear previous data
+  currentVideoData = [];
   let nextPageToken = null;
   let fetchedResultsCount = 0;
 
@@ -135,12 +138,11 @@ async function searchAndFetchData() {
         for (const video of videoDetailsData.items) {
           const totalViews = parseInt(video.statistics?.viewCount || "0", 10);
 
-          // NEW: Use desiredMinViews for filtering
           if (totalViews >= desiredMinViews) {
             const artistName = video.snippet.channelTitle;
             const songTitle = video.snippet.title;
-            const videoLink = `https://www.youtube.com/watch?v=${video.id}`; // Corrected video link
-            const channelLink = `https://www.youtube.com/channel/${video.snippet.channelId}`; // Corrected channel link
+            const videoLink = `https://www.youtube.com/watch?v=${video.id}`;
+            const channelLink = `https://www.youtube.com/channel/${video.snippet.channelId}`;
             const genre =
               video.snippet.categoryId === "10" ? "Music" : "Unknown/Other";
 
@@ -236,6 +238,7 @@ function exportToExcel(data, artistName, songTitle) {
   const sanitizedArtist = artistName
     .replace(/[^a-zA-Z0-9]/g, "_")
     .substring(0, 30);
+  // Use currentSongTitleSearch (which respects maxlength) for filename
   const sanitizedSong = songTitle
     .replace(/[^a-zA-Z0-9]/g, "_")
     .substring(0, 30);
