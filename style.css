@@ -3,7 +3,7 @@ body {
   margin: 20px;
 }
 .container {
-  max-width: 900px;
+  max-width: 850px;
   margin: 0 auto;
   padding: 20px;
   border: 1px solid #ccc;
@@ -19,8 +19,8 @@ body {
 .input-group label {
   margin-right: 10px;
   min-width: 90px;
-} /* Adjust as needed */
-/* Updated input styles to cover both text and number types */
+} 
+
 .input-group input[type="text"],
 .input-group input[type="number"] {
   flex-grow: 1;
@@ -72,10 +72,35 @@ button#downloadExcelButton:hover {
 #resultsTable th {
   background-color: #f2f2f2;
 }
+
+
 .loading {
   text-align: center;
   margin-top: 20px;
+  display: flex; /* Use flexbox for centering */
+  align-items: center; 
+  justify-content: center; 
+  gap: 10px; 
 }
+
+.loader {
+  border: 4px solid #f3f3f3; 
+  border-top: 4px solid #3498db; 
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .hidden {
   display: none;
 }
