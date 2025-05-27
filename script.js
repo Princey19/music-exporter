@@ -184,7 +184,7 @@ async function searchAndFetchData() {
   } catch (error) {
     console.error("Error fetching YouTube data:", error);
     loadingDiv.classList.add("hidden");
-    statusDiv.textContent = `Error: ${error.message}. Please check your API key and try again. Also, consider YouTube API quota limits.`;
+    statusDiv.textContent = `Error: Please check your API key and try again. Also, consider YouTube API quota limits.`;
     statusDiv.classList.remove("hidden");
     downloadExcelButton.classList.add("hidden");
   }
