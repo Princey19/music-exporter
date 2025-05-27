@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Youtube Music Search</title>
-    <link rel="stylesheet" href="./style.css" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="container">
@@ -17,7 +17,12 @@
       </div>
       <div class="input-group">
         <label for="songTitleInput">Song Title:</label>
-        <input type="text" id="songTitleInput" placeholder="e.g., Hello" />
+        <input
+          type="text"
+          id="songTitleInput"
+          placeholder="e.g., Hello"
+          maxlength="200"
+        />
       </div>
       <p>Choose the minimum amount of views</p>
       <div class="input-group">
@@ -25,10 +30,9 @@
         <input
           type="number"
           id="minViewsInput"
-          value="200000"
+          placeholder="e.g., 1000 or 200000"
           min="1"
           step="1000"
-          placeholder="e.g., 1000"
         />
       </div>
 
