@@ -1,7 +1,6 @@
-const YOUTUBE_API_KEY = "AIzaSyDj2STT3vCINPIrNHfUz8pIDy0Rzbf6KH0";
-const MAX_RESULTS_PER_PAGE = 50;
-const MAX_TOTAL_RESULTS = 10000;
-
+const YOUTUBE_API_KEY = "AIzaSyDj2STT3vCINPIrNHfUz8pIDy0Rzbf6KH0"; 
+const MAX_RESULTS_PER_PAGE = 50; 
+const MAX_TOTAL_RESULTS = 10000; 
 const DEFAULT_MIN_VIEWS = 200000;
 
 // Get references to elements
@@ -9,22 +8,35 @@ const artistInput = document.getElementById("artistInput");
 const songTitleInput = document.getElementById("songTitleInput");
 const minViewsInput = document.getElementById("minViewsInput");
 const searchButton = document.getElementById("searchButton");
+const stopSearchButton = document.getElementById("stopSearchButton");
 const downloadExcelButton = document.getElementById("downloadExcelButton");
 const statusDiv = document.getElementById("status");
 const loadingDiv = document.getElementById("loading");
 const resultsTable = document.getElementById("resultsTable");
 const tableBody = resultsTable.querySelector("tbody");
 
+// Global variable to store fetched data for export
 let currentVideoData = [];
 let currentArtistSearch = "";
 let currentSongTitleSearch = "";
+let abortController = null; 
 
-// Initially hide the table and download button
+// Initially hide the table, download button, and stop button
 resultsTable.classList.add("hidden");
 downloadExcelButton.classList.add("hidden");
+stopSearchButton.classList.add("hidden"); // hide stop button
 
 // Event Listeners
 searchButton.addEventListener("click", searchAndFetchData);
+stopSearchButton.addEventListener("click", () => {
+  
+  if (abortController) {
+    abortController.abort(); 
+    statusDiv.textContent = "Search stopped by user.";
+    statusDiv.classList.remove("hidden");
+    resetUIOnCompletionOrError(); 
+  }
+});
 downloadExcelButton.addEventListener("click", () => {
   if (currentVideoData.length > 0) {
     exportToExcel(
@@ -53,12 +65,10 @@ async function searchAndFetchData() {
     return;
   }
 
-  // Construct the search query
   let combinedQuery = "";
   if (currentArtistSearch) {
     combinedQuery += currentArtistSearch;
   }
-
   if (currentSongTitleSearch) {
     combinedQuery += (combinedQuery ? " " : "") + currentSongTitleSearch;
   }
@@ -73,16 +83,30 @@ async function searchAndFetchData() {
   // Reset UI for new search
   statusDiv.classList.add("hidden");
   resultsTable.classList.add("hidden");
-  tableBody.innerHTML = "";
+  tableBody.innerHTML = ""; // Clear previous results
   downloadExcelButton.classList.add("hidden");
   loadingDiv.classList.remove("hidden");
+
+  // Manage button states for search in progress
+  searchButton.disabled = true;
+  stopSearchButton.classList.remove("hidden"); 
 
   currentVideoData = [];
   let nextPageToken = null;
   let fetchedResultsCount = 0;
 
+  // AbortController for this search
+  abortController = new AbortController();
+  const signal = abortController.signal;
+
   try {
     while (fetchedResultsCount < MAX_TOTAL_RESULTS) {
+      // Check if abort signal has been received
+      if (signal.aborted) {
+        console.log("Search aborted by user.");
+        break;
+      }
+
       const url = new URL("https://www.googleapis.com/youtube/v3/search");
       url.searchParams.append("key", YOUTUBE_API_KEY);
       url.searchParams.append("q", combinedQuery);
@@ -96,11 +120,11 @@ async function searchAndFetchData() {
       }
 
       console.log(
-        `Workspaceing page with token: ${
+        `Fetching page with token: ${
           nextPageToken || "start"
         } for query: "${combinedQuery}"`
       );
-      const response = await fetch(url);
+      const response = await fetch(url, { signal });
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
@@ -119,14 +143,23 @@ async function searchAndFetchData() {
         .filter(Boolean);
 
       if (videoIds.length > 0) {
+        // Check if abort signal has been received before making next fetch
+        if (signal.aborted) {
+          console.log("Search aborted by user.");
+          break;
+        }
+
         const videoDetailsUrl = new URL(
           "https://www.googleapis.com/youtube/v3/videos"
         );
         videoDetailsUrl.searchParams.append("key", YOUTUBE_API_KEY);
         videoDetailsUrl.searchParams.append("id", videoIds.join(","));
-        videoDetailsUrl.searchParams.append("part", "snippet,statistics");
+        videoDetailsUrl.searchParams.append(
+          "part",
+          "snippet,statistics,contentDetails"
+        );
 
-        const videoDetailsResponse = await fetch(videoDetailsUrl);
+        const videoDetailsResponse = await fetch(videoDetailsUrl, { signal }); 
         if (!videoDetailsResponse.ok) {
           const errorText = await videoDetailsResponse.text();
           throw new Error(
@@ -137,6 +170,8 @@ async function searchAndFetchData() {
 
         for (const video of videoDetailsData.items) {
           const totalViews = parseInt(video.statistics?.viewCount || "0", 10);
+          const isLicensedContent =
+            video.contentDetails?.licensedContent || false; 
 
           if (totalViews >= desiredMinViews) {
             const artistName = video.snippet.channelTitle;
@@ -151,6 +186,7 @@ async function searchAndFetchData() {
               songTitle,
               genre,
               totalViews,
+              isLicensedContent,
               videoLink,
               channelLink,
             });
@@ -182,12 +218,26 @@ async function searchAndFetchData() {
     }
     statusDiv.classList.remove("hidden");
   } catch (error) {
-    console.error("Error fetching YouTube data:", error);
-    loadingDiv.classList.add("hidden");
-    statusDiv.textContent = `Error: Please check your API key and try again. Also, consider YouTube API quota limits.`;
-    statusDiv.classList.remove("hidden");
-    downloadExcelButton.classList.add("hidden");
+    
+    if (error.name === "AbortError") {
+      console.log("Fetch aborted.");
+      
+    } else {
+      console.error("Error fetching YouTube data:", error);
+      loadingDiv.classList.add("hidden");
+      statusDiv.textContent = `Error: ${error.message}. Please check your internet connection key and try again.`;
+      statusDiv.classList.remove("hidden");
+      downloadExcelButton.classList.add("hidden");
+    }
+  } finally {
+    resetUIOnCompletionOrError();
   }
+}
+
+function resetUIOnCompletionOrError() {
+  loadingDiv.classList.add("hidden");
+  searchButton.disabled = false;
+  stopSearchButton.classList.add("hidden"); // Hide stop button
 }
 
 function displayResults(data) {
@@ -202,7 +252,9 @@ function displayResults(data) {
             <td>${row.songTitle}</td>
             <td>${row.genre}</td>
             <td>${row.totalViews.toLocaleString()}</td>
-            <td><a href="${row.videoLink}" target="_blank">Link</a></td>
+            <td>${row.isLicensedContent ? "Yes" : "No"}</td> <td><a href="${
+      row.videoLink
+    }" target="_blank">Link</a></td>
             <td><a href="${row.channelLink}" target="_blank">Link</a></td>
         `;
     tableBody.appendChild(tr);
@@ -216,15 +268,17 @@ function exportToExcel(data, artistName, songTitle) {
     row.songTitle,
     row.genre,
     row.totalViews,
+    row.isLicensedContent ? "Yes" : "No",
     row.videoLink,
     row.channelLink,
   ]);
 
   const headers = [
-    "Artist (Inferred)",
+    "Artist",
     "Song Title",
-    "Genre (Inferred)",
+    "Genre",
     "Total Views",
+    "Licensed Content",
     "Video Link",
     "Channel Link",
   ];
@@ -238,7 +292,6 @@ function exportToExcel(data, artistName, songTitle) {
   const sanitizedArtist = artistName
     .replace(/[^a-zA-Z0-9]/g, "_")
     .substring(0, 30);
-  // Use currentSongTitleSearch (which respects maxlength) for filename
   const sanitizedSong = songTitle
     .replace(/[^a-zA-Z0-9]/g, "_")
     .substring(0, 30);
