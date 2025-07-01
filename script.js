@@ -9,6 +9,7 @@ const songTitleInput = document.getElementById("songTitleInput");
 const minViewsInput = document.getElementById("minViewsInput");
 const searchButton = document.getElementById("searchButton");
 const stopSearchButton = document.getElementById("stopSearchButton");
+stopSearchButton.classList.remove("hidden");
 const downloadExcelButton = document.getElementById("downloadExcelButton");
 const statusDiv = document.getElementById("status");
 const loadingDiv = document.getElementById("loading");
@@ -24,12 +25,13 @@ let abortController = null;
 // Initially hide the table, download button, and stop button
 resultsTable.classList.add("hidden");
 downloadExcelButton.classList.add("hidden");
-stopSearchButton.classList.add("hidden"); // hide stop button
+
+// Make stop button visible
+stopSearchButton.disabled = true;
 
 // Event Listeners
 searchButton.addEventListener("click", searchAndFetchData);
 stopSearchButton.addEventListener("click", () => {
-  
   if (abortController) {
     abortController.abort(); 
     statusDiv.textContent = "Search stopped by user.";
@@ -89,7 +91,7 @@ async function searchAndFetchData() {
 
   // Manage button states for search in progress
   searchButton.disabled = true;
-  stopSearchButton.classList.remove("hidden"); 
+  stopSearchButton.disabled = false; 
 
   currentVideoData = [];
   let nextPageToken = null;
@@ -218,7 +220,6 @@ async function searchAndFetchData() {
     }
     statusDiv.classList.remove("hidden");
   } catch (error) {
-    
     if (error.name === "AbortError") {
       console.log("Fetch aborted.");
       
@@ -237,7 +238,7 @@ async function searchAndFetchData() {
 function resetUIOnCompletionOrError() {
   loadingDiv.classList.add("hidden");
   searchButton.disabled = false;
-  stopSearchButton.classList.add("hidden"); // Hide stop button
+  stopSearchButton.disabled = true; // disable stop button
 }
 
 function displayResults(data) {
