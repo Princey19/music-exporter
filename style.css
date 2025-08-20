@@ -121,12 +121,32 @@ button:disabled {
 }
 .download-button {
   background-color: #28a745;
+  padding: 0.75rem 1.5rem;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .download-button:hover {
   background-color: #218838;
 }
 .stop-button {
   background-color: #dc3545;
+  padding: 0.75rem 1.5rem;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .stop-button:hover {
   background-color: #c82333;
