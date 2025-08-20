@@ -3,66 +3,117 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Youtube Music Search</title>
+    <title>YouTube Search App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div class="container">
-      <h2>YouTube Music Search</h2>
-      <p>Enter artist name and/or song title to search for YouTube videos.</p>
+    <div class="main-container">
+      <!-- YouTube Video Search Section -->
+      <div id="videoSearchSection" class="search-section">
+        <h2 class="heading2">YouTube Video Search</h2>
+        <p>Search by title or keywords.</p>
 
-      <div class="input-group">
-        <label for="artistInput">Artist Name:</label>
-        <input type="text" id="artistInput" placeholder="e.g., Adele" />
-      </div>
-      <div class="input-group">
-        <label for="songTitleInput">Song Title:</label>
-        <input
-          type="text"
-          id="songTitleInput"
-          placeholder="e.g., Hello"
-          maxlength="100"
-        />
-      </div>
-      <div class="input-group">
-        <label for="minViewsInput">Min Views:</label>
-        <input
-          type="number"
-          id="minViewsInput"
-          placeholder="e.g., 1000 or 200000"
-          min="1"
-          step="1000"
-        />
-      </div>
+        <div class="input-group">
+          <label for="videoSearchInput">Search Query:</label>
+          <input
+            type="text"
+            id="videoSearchInput"
+            placeholder="e.g., dance videos"
+          />
+        </div>
 
-      <div class="button-group">
-        <button id="searchButton">Search</button>
-        <button id="stopSearchButton" class="hidden">Stop Search</button>
-        <button id="downloadExcelButton" class="hidden">Download Excel</button>
-      </div>
+        <div class="button-group">
+          <button id="videoSearchButton" class="search-button-primary">
+            Search Videos
+          </button>
+          <button id="videoStopSearchButton" class="stop-button hidden">
+            Stop Search
+          </button>
+        </div>
 
-      <div id="status" class="hidden"></div>
-      <div id="loading" class="loading hidden">
-        <div class="loader"></div>
-        Searching and gathering data... This may take a while.
-      </div>
+        <div id="videoStatus" class="status-message hidden"></div>
+        <div id="videoLoading" class="loading hidden">
+          <div class="loader"></div>
+          Searching for videos...
+        </div>
 
-      <table id="resultsTable" class="hidden">
-        <thead>
-          <tr>
-            <th>Artist</th>
-            <th>Song Title</th>
-            <th>Genre</th>
-            <th>Total Views</th>
-            <th>Licensed Content</th>
-            <th>Video Link</th>
-            <th>Channel Link</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+        <div id="videoResultsCards" class="video-cards-grid hidden">
+          <!-- Video cards will be added here -->
+        </div>
+      </div>
+      <!-- End of Video Search Section -->
+      
+      <!-- YouTube Music Search Section -->
+      <div id="musicSearchSection" class="search-section">
+        <h2 class="heading2">YouTube Music Search</h2>
+        <p>Enter artist name and/or song title with a minimum view count.</p>
+
+        <div class="input-group">
+          <label for="artistInput">Artist Name:</label>
+          <input type="text" id="artistInput" placeholder="e.g., Adele" />
+        </div>
+        <div class="input-group">
+          <label for="songTitleInput">Song Title:</label>
+          <input
+            type="text"
+            id="songTitleInput"
+            placeholder="e.g., Hello"
+            maxlength="100"
+          />
+        </div>
+        <div class="input-group">
+          <label for="minViewsInput">Min Views:</label>
+          <input
+            type="number"
+            id="minViewsInput"
+            placeholder="e.g., 1000 or 200000"
+            min="0"
+            step="1000"
+          />
+        </div>
+
+        <div class="button-group">
+          <button id="musicSearchButton" class="search-button-primary">
+            Search Music
+          </button>
+          <button id="musicStopSearchButton" class="stop-button hidden">
+            Stop Search
+          </button>
+          <button id="downloadExcelButton" class="download-button hidden">
+            Download Excel
+          </button>
+        </div>
+
+        <div id="musicStatus" class="status-message hidden"></div>
+        <div id="musicLoading" class="loading hidden">
+          <div class="loader"></div>
+          Searching for music and gathering data... This may take a while.
+        </div>
+
+        <div id="musicResultsCards" class="video-cards-grid hidden">
+          <!-- Music video cards will be added here -->
+        </div>
+
+        <table id="musicResultsTable" class="results-table hidden">
+          <thead>
+            <tr>
+              <th>Artist</th>
+              <th>Song Title</th>
+              <th>Genre</th>
+              <th>Total Views</th>
+              <th>Licensed Content</th>
+              <th>Video Link</th>
+              <th>Channel Link</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <!-- YouTube Music Search Section -->
+      
     </div>
-
+    <!-- JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="./script.js"></script>
   </body>
