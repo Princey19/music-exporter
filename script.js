@@ -1,3 +1,5 @@
+// IMPORTANT: Using the API key provided in the user's original code.
+// For production, it's recommended to use a server-side proxy to protect your API key.
 const YOUTUBE_API_KEY = "AIzaSyDj2STT3vCINPIrNHfUz8pIDy0Rzbf6KH0";
 const MAX_RESULTS_PER_PAGE = 50;
 const MAX_TOTAL_RESULTS = 10000; // Limit total results to prevent excessive API calls
@@ -6,6 +8,7 @@ const MUSIC_CATEGORY_ID = "10"; // YouTube category ID for Music
 
 // --- General Video Search Elements ---
 const videoSearchInput = document.getElementById("videoSearchInput");
+const videoMinViewsInput = document.getElementById("videoMinViewsInput");
 const videoSearchButton = document.getElementById("videoSearchButton");
 const videoStopSearchButton = document.getElementById("videoStopSearchButton");
 const videoStatusDiv = document.getElementById("videoStatus");
@@ -25,14 +28,36 @@ const musicResultsCards = document.getElementById("musicResultsCards");
 const musicResultsTable = document.getElementById("musicResultsTable");
 const musicTableBody = musicResultsTable.querySelector("tbody");
 
-// Global variables for music search 
+// Global variables for music search (for Excel export and abort controller)
 let currentMusicVideoData = [];
 let currentArtistSearch = "";
 let currentSongTitleSearch = "";
 let musicAbortController = null;
 
-// Global variables for video search 
+// Global variables for video search (for abort controller)
 let videoAbortController = null;
+
+// BACK TO THE TOP (tO GO BACK TO THE TOP)
+let mybutton = document.getElementById("myBtn");
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = function () {
+  scrollFunction();
+};
+
+function scrollFunction() {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    mybutton.style.display = "block";
+  } else {
+    mybutton.style.display = "none";
+  }
+}
+
+// // When the user clicks on the button, scroll to the top of the document
+// function topFunction() {
+//   document.body.scrollTop = 0; // For Safari
+//   document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE, and Opera
+// }
 
 // --- Initial UI State Setup ---
 function initializeUI() {
@@ -50,17 +75,20 @@ function initializeUI() {
   downloadExcelButton.classList.add("hidden");
 
   // Display initial status messages
-  videoStatusDiv.textContent = "Enter a query to search for videos.";
+  videoStatusDiv.textContent = "Enter a query to search for general videos.";
   videoStatusDiv.classList.remove("hidden", "error");
 
   musicStatusDiv.textContent =
-    "Enter artist name and/or song title to search for music videos.";
+    "Enter artist name and/or song title to search for YouTube music videos.";
   musicStatusDiv.classList.remove("hidden", "error");
 }
 
 // --- Event Listeners ---
 videoSearchButton.addEventListener("click", fetchGeneralVideos);
 videoSearchInput.addEventListener("keypress", (event) => {
+  if (event.key === "Enter") videoSearchButton.click();
+});
+videoMinViewsInput.addEventListener("keypress", (event) => {
   if (event.key === "Enter") videoSearchButton.click();
 });
 videoStopSearchButton.addEventListener("click", () => {
@@ -213,10 +241,10 @@ function renderVideoCards(container, videos) {
   }
   videos.forEach((video) => {
     const videoId = video.videoLink.split("v=")[1];
-    const title = video.songTitle || video.title; 
-    const description = video.artistName || video.description; 
+    const title = video.songTitle || video.title; // Use songTitle for music, title for general
+    const description = video.artistName || video.description; // Use artistName for music, description for general
     const thumbnailUrl = video.thumbnailUrl;
-    const channelTitle = video.artistName || video.channelTitle; 
+    const channelTitle = video.artistName || video.channelTitle; // Use artistName for music, channelTitle for general
     const viewsText = video.totalViews
       ? `Views: ${video.totalViews.toLocaleString()}`
       : "";
@@ -239,9 +267,21 @@ function renderVideoCards(container, videos) {
   container.classList.remove("hidden");
 }
 
-// --- General Video Search ---
+// --- General Video Search Logic ---
 async function fetchGeneralVideos() {
   const query = videoSearchInput.value.trim();
+  let desiredMinViews = parseInt(videoMinViewsInput.value, 10);
+  if (isNaN(desiredMinViews) || videoMinViewsInput.value.trim() === "") {
+    desiredMinViews = 0;
+    videoMinViewsInput.value = "";
+  } else if (desiredMinViews < 0) {
+    displayStatus(
+      videoStatusDiv,
+      "Please enter a valid number (0 or greater) for Minimum Views.",
+      "error"
+    );
+    return;
+  }
 
   if (!query) {
     displayStatus(
@@ -271,7 +311,7 @@ async function fetchGeneralVideos() {
     url.searchParams.append("q", query);
     url.searchParams.append("part", "snippet");
     url.searchParams.append("type", "video");
-    url.searchParams.append("maxResults", 20);
+    url.searchParams.append("maxResults", 20); // Fewer results for general search for quicker response
 
     const data = await fetchDataWithRetries(url, signal);
 
@@ -287,7 +327,7 @@ async function fetchGeneralVideos() {
     }
 
     const videoDetailsPromises = data.items.map(async (item) => {
-      if (signal.aborted) return null; 
+      if (signal.aborted) return null; // Abort if signal received
       const videoDetailsUrl = new URL(
         "https://www.googleapis.com/youtube/v3/videos"
       );
@@ -313,17 +353,23 @@ async function fetchGeneralVideos() {
       Boolean
     );
 
-    if (fetchedVideos.length > 0) {
-      renderVideoCards(videoResultsCards, fetchedVideos);
+    const filteredVideos = fetchedVideos.filter(
+      (video) => video.totalViews >= desiredMinViews
+    );
+
+    if (filteredVideos.length > 0) {
+      renderVideoCards(videoResultsCards, filteredVideos);
       displayStatus(
         videoStatusDiv,
-        `Found ${fetchedVideos.length} videos.`,
+        `Found ${
+          filteredVideos.length
+        } videos matching your criteria (Min Views: ${desiredMinViews.toLocaleString()}).`,
         "info"
       );
     } else {
       displayStatus(
         videoStatusDiv,
-        "No detailed video information found for your search.",
+        `No videos found matching your search and view criteria (Min Views: ${desiredMinViews.toLocaleString()}).`,
         "info"
       );
     }
@@ -353,7 +399,7 @@ function resetVideoSearchUI() {
   videoStopSearchButton.classList.add("hidden");
 }
 
-// --- Music Search ---
+// --- Music Search Logic ---
 async function fetchMusicVideos() {
   currentArtistSearch = artistInput.value.trim();
   currentSongTitleSearch = songTitleInput.value.trim();
