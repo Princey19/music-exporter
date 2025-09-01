@@ -23,6 +23,17 @@
           />
         </div>
 
+        <div class="input-group">
+          <label for="videoMinViewsInput">Min Views:</label>
+          <input
+            type="number"
+            id="videoMinViewsInput"
+            placeholder="e.g., 1000 or 200000"
+            min="0"
+            step="1000"
+          />
+        </div>
+
         <div class="button-group">
           <button id="videoSearchButton" class="search-button-primary">
             Search Videos
@@ -39,11 +50,10 @@
         </div>
 
         <div id="videoResultsCards" class="video-cards-grid hidden">
-          <!-- Video cards will be added here -->
+          <!-- Video cards will be dynamically added here -->
         </div>
       </div>
-      <!-- End of Video Search Section -->
-      
+
       <!-- YouTube Music Search Section -->
       <div id="musicSearchSection" class="search-section">
         <h2 class="heading2">YouTube Music Search</h2>
@@ -83,6 +93,15 @@
           <button id="downloadExcelButton" class="download-button hidden">
             Download Excel
           </button>
+          <div onclick="topFunction()" id="myBtn" title="Go to top">
+            <a href="#videoSearchSection">Top</a>
+          </div>
+          <!-- <button onclick="topFunction()" id="myBtn" title="Go to top">
+            Top
+          </button> -->
+          <div class="table-button">
+            <a href="#musicResultsTable">Table</a>
+          </div>
         </div>
 
         <div id="musicStatus" class="status-message hidden"></div>
@@ -92,7 +111,7 @@
         </div>
 
         <div id="musicResultsCards" class="video-cards-grid hidden">
-          <!-- Music video cards will be added here -->
+          <!-- Music video cards will be dynamically added here -->
         </div>
 
         <table id="musicResultsTable" class="results-table hidden">
@@ -110,10 +129,8 @@
           <tbody></tbody>
         </table>
       </div>
-      <!-- YouTube Music Search Section -->
-      
     </div>
-    <!-- JavaScript -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="./script.js"></script>
   </body>
