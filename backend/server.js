@@ -46,6 +46,17 @@ app.post("/api/crosscheck", crosscheckCatalog);
 // Results export route
 app.post("/api/export", exportResults);
 
+// Serve the built frontend (frontend/dist) and hand back index.html for
+// any non-API route, so the React app loads on GET /
+const frontendDist = path.join(__dirname, "..", "frontend", "dist");
+app.use(express.static(frontendDist));
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
+  res.sendFile(path.join(frontendDist, "index.html"), (err) => {
+    if (err) next();
+  });
+});
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error("Express Error Handler:", err);
